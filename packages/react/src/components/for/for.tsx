@@ -20,9 +20,9 @@ export function For<T extends string | number | Dict | undefined>(
 ): React.ReactNode {
   const { each, fallback, children } = props
 
-  if (each?.length === 0) {
+  if (!each || each.length === 0) {
     return fallback || null
   }
 
-  return each?.map(children as any)
+  return each.map(children as any)
 }
