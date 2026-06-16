@@ -25,6 +25,10 @@ export type {
   PaginationPageTextFormatDetails,
   PaginationPageTextFormatFn,
   PaginationItemsProps,
+  PaginationItemRenderDetails,
+  PaginationEllipsisRenderDetails,
+  PaginationItemRender,
+  PaginationEllipsisRender,
 } from "./pagination"
 
 export { usePagination, usePaginationContext } from "@ark-ui/react/pagination"

@@ -176,25 +176,78 @@ export const PaginationPageText = forwardRef<
 
 ////////////////////////////////////////////////////////////////////////////////////
 
-export interface PaginationItemsProps extends React.HTMLAttributes<HTMLElement> {
-  render: (page: { type: "page"; value: number }) => React.ReactNode
-  ellipsis?: React.ReactElement | undefined
+export interface PaginationItemRenderDetails {
+  type: "page"
+  /** The page number this item represents */
+  value: number
+  /** Whether this item represents the currently selected page */
+  current: boolean
+  /** The index of the item within the rendered list */
+  index: number
 }
 
+export interface PaginationEllipsisRenderDetails {
+  type: "ellipsis"
+  /** The index of the ellipsis within the rendered list */
+  index: number
+}
+
+export type PaginationItemRender = (
+  details: PaginationItemRenderDetails,
+) => React.ReactNode
+
+export type PaginationEllipsisRender = (
+  details: PaginationEllipsisRenderDetails,
+) => React.ReactNode
+
+export interface PaginationItemsProps extends React.HTMLAttributes<HTMLElement> {
+  /**
+   * Render a page item. Receives details about the page including whether it is
+   * the currently selected page and its index. When omitted, a default page
+   * button is rendered.
+   */
+  render?: PaginationItemRender | undefined
+  /**
+   * Customize the ellipsis. Accepts either a React element (used for every
+   * ellipsis) or a render function that receives the ellipsis details. When
+   * omitted, a default ellipsis button is rendered.
+   */
+  ellipsis?: React.ReactElement | PaginationEllipsisRender | undefined
+  /**
+   * Content rendered when there are no pages to display. When omitted, nothing
+   * is rendered for the empty state.
+   */
+  empty?: React.ReactNode | undefined
+}
+
+const defaultItemRender: PaginationItemRender = (page) => (
+  <IconButton>{page.value}</IconButton>
+)
+
+const defaultEllipsis = (
+  <IconButton as="span">
+    <EllipsisIcon />
+  </IconButton>
+)
+
 export const PaginationItems = (props: PaginationItemsProps) => {
-  const { pages } = usePaginationContext()
-  const { render, ellipsis, ...rest } = props
+  const { pages, page: currentPage } = usePaginationContext()
+  const {
+    render = defaultItemRender,
+    ellipsis,
+    empty = null,
+    ...rest
+  } = props
+
   return (
-    <For each={pages}>
+    <For each={pages} fallback={empty}>
       {(page, index) => {
         if (page.type === "ellipsis") {
           return (
             <PaginationEllipsis asChild key={index} index={index} {...rest}>
-              {ellipsis || (
-                <IconButton as="span">
-                  <EllipsisIcon />
-                </IconButton>
-              )}
+              {typeof ellipsis === "function"
+                ? ellipsis({ type: "ellipsis", index })
+                : (ellipsis ?? defaultEllipsis)}
             </PaginationEllipsis>
           )
         }
@@ -207,7 +260,12 @@ export const PaginationItems = (props: PaginationItemsProps) => {
             value={page.value}
             {...rest}
           >
-            {render(page)}
+            {render({
+              type: "page",
+              value: page.value,
+              current: page.value === currentPage,
+              index,
+            })}
           </PaginationItem>
         )
       }}

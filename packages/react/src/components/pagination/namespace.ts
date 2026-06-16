@@ -24,4 +24,8 @@ export type {
   PaginationPageTextFormatDetails as PageTextFormatDetails,
   PaginationPageTextFormatFn as PageTextFormatFn,
   PaginationItemsProps as ItemsProps,
+  PaginationItemRenderDetails as ItemRenderDetails,
+  PaginationEllipsisRenderDetails as EllipsisRenderDetails,
+  PaginationItemRender as ItemRender,
+  PaginationEllipsisRender as EllipsisRender,
 } from "./pagination"
