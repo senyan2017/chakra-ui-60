@@ -176,9 +176,50 @@ export const PaginationPageText = forwardRef<
 
 ////////////////////////////////////////////////////////////////////////////////////
 
+interface PaginationPageValue {
+  type: "page"
+  value: number
+}
+
 export interface PaginationItemsProps extends React.HTMLAttributes<HTMLElement> {
-  render: (page: { type: "page"; value: number }) => React.ReactNode
+  render: (page: PaginationPageValue) => React.ReactNode
   ellipsis?: React.ReactElement | undefined
+}
+
+// Props shared by every rendered pagination item and forwarded to the
+// underlying Ark element (e.g. `className`, `data-*`, event handlers).
+type PaginationItemSharedProps = React.HTMLAttributes<HTMLElement>
+
+interface PaginationPageItemProps extends PaginationItemSharedProps {
+  page: PaginationPageValue
+  render: PaginationItemsProps["render"]
+}
+
+const PaginationPageItem = (props: PaginationPageItemProps) => {
+  const { page, render, ...rest } = props
+  return (
+    <PaginationItem asChild type="page" value={page.value} {...rest}>
+      {render(page)}
+    </PaginationItem>
+  )
+}
+
+interface PaginationEllipsisItemProps extends PaginationItemSharedProps {
+  index: number
+  ellipsis: PaginationItemsProps["ellipsis"]
+}
+
+const PaginationEllipsisItem = (props: PaginationEllipsisItemProps) => {
+  const { index, ellipsis, ...rest } = props
+  return (
+    <PaginationEllipsis asChild index={index} {...rest}>
+      {ellipsis || (
+        <IconButton as="span">
+          <EllipsisIcon />
+        </IconButton>
+      )}
+    </PaginationEllipsis>
+  )
 }
 
 export const PaginationItems = (props: PaginationItemsProps) => {
@@ -186,31 +227,18 @@ export const PaginationItems = (props: PaginationItemsProps) => {
   const { render, ellipsis, ...rest } = props
   return (
     <For each={pages}>
-      {(page, index) => {
-        if (page.type === "ellipsis") {
-          return (
-            <PaginationEllipsis asChild key={index} index={index} {...rest}>
-              {ellipsis || (
-                <IconButton as="span">
-                  <EllipsisIcon />
-                </IconButton>
-              )}
-            </PaginationEllipsis>
-          )
-        }
-
-        return (
-          <PaginationItem
-            asChild
+      {(page, index) =>
+        page.type === "ellipsis" ? (
+          <PaginationEllipsisItem
             key={index}
-            type="page"
-            value={page.value}
+            index={index}
+            ellipsis={ellipsis}
             {...rest}
-          >
-            {render(page)}
-          </PaginationItem>
+          />
+        ) : (
+          <PaginationPageItem key={index} page={page} render={render} {...rest} />
         )
-      }}
+      }
     </For>
   )
 }
